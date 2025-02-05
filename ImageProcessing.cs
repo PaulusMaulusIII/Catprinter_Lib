@@ -1,7 +1,8 @@
 ﻿using System.Drawing;
 
-namespace Catprinter_Lib
+namespace Catprinter.Utils
 {
+
     public class ImageProcessing
     {
         public static Bitmap FloydSteinbergDither(Bitmap img)

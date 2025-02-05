@@ -1,7 +1,8 @@
-namespace Catprinter_Lib
-{
-    using System.Drawing;
 
+using System.Drawing;
+
+namespace Catprinter.Utils
+{
     public static class PrinterCommands
     {
         public static byte[] GetImgPrintCmd(Bitmap img)
