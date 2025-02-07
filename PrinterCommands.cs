@@ -5,12 +5,12 @@ namespace Catprinter.Utils
 {
     public static class PrinterCommands
     {
-        public static byte[] GetImgPrintCmd(Bitmap img)
+        public static byte[] GetImgPrintCmd(Bitmap img, int energy)
         {
             byte[] data = new byte[0];
             data = AddToByteArray(data, CMD_GET_DEV_STATE);
             data = AddToByteArray(data, CMD_SET_QUALITY_200_DPI);
-            data = AddToByteArray(data, GenerateSetEnergyCommand(0xffff));
+            data = AddToByteArray(data, GenerateSetEnergyCommand(energy));
             data = AddToByteArray(data, GenerateApplyEnergyCommand());
             data = AddToByteArray(data, CMD_LATTICE_START);
 
