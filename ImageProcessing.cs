@@ -2,7 +2,6 @@
 
 namespace Catprinter.Utils
 {
-
     public class ImageProcessing
     {
         public static Bitmap FloydSteinbergDither(Bitmap img)
@@ -91,7 +90,8 @@ namespace Catprinter.Utils
                 return;
 
             Color oldColor = img.GetPixel(x, y);
-            int newGray = Math.Min(255, Math.Max(0, (oldColor.R + oldColor.G + oldColor.B) / 3 + delta));
+            int oldGray = (oldColor.R + oldColor.G + oldColor.B) / 3;
+            int newGray = Math.Min(255, Math.Max(0, oldGray + delta));
             img.SetPixel(x, y, Color.FromArgb(newGray, newGray, newGray));
         }
 
@@ -108,71 +108,7 @@ namespace Catprinter.Utils
                     count++;
                 }
             }
-            return (double)sum / count;
-        }
-
-        public static Bitmap ReadImg(String filename, int printWidth, String imgBinarizationAlgo)
-        {
-            if (!File.Exists(filename))
-            {
-                throw new FileNotFoundException($"The file {filename} does not exist.");
-            }
-            Bitmap img = new Bitmap(filename);
-            int width = img.Width;
-            int height = img.Height;
-            double factor = (double)printWidth / width;
-            Bitmap resized = new Bitmap(img, new Size(printWidth, (int)(height * factor)));
-
-            switch (imgBinarizationAlgo.ToLower())
-            {
-                case "atkinson":
-                    resized = AtkinsonDither(resized);
-                    break;
-                case "floyd-steinberg":
-                    resized = FloydSteinbergDither(resized);
-                    break;
-                case "halftone":
-                    resized = HalftoneDither(resized);
-                    break;
-                case "mean-threshold":
-                    resized = MeanThreshold(resized);
-                    break;
-                case "none":
-                    if (width == printWidth)
-                    {
-                        resized = Threshold(resized, 127);
-                    }
-                    else
-                    {
-                        throw new InvalidOperationException($"Wrong width of {width} px. An image with a width of {printWidth} px is required for 'none' binarization");
-                    }
-                    break;
-                default:
-                    throw new InvalidOperationException($"Unknown image binarization algorithm: {imgBinarizationAlgo}");
-            }
-
-            return InvertImage(resized);
-        }
-
-        private static Bitmap MeanThreshold(Bitmap img)
-        {
-            int mean = (int)img.GetPixel(0, 0).GetBrightness();
-            return Threshold(img, mean);
-        }
-
-        private static Bitmap Threshold(Bitmap img, int threshold)
-        {
-            for (int y = 0; y < img.Height; y++)
-            {
-                for (int x = 0; x < img.Width; x++)
-                {
-                    Color color = img.GetPixel(x, y);
-                    int gray = (color.R + color.G + color.B) / 3;
-                    int newColor = gray > threshold ? 255 : 0;
-                    img.SetPixel(x, y, Color.FromArgb(newColor, newColor, newColor));
-                }
-            }
-            return img;
+            return count == 0 ? 0 : (double)sum / count;
         }
 
         private static Bitmap InvertImage(Bitmap img)
@@ -186,6 +122,49 @@ namespace Catprinter.Utils
                 }
             }
             return img;
+        }
+
+        public static Bitmap ReadImg(string filename, int printWidth, string imgBinarizationAlgo, bool invert)
+        {
+            if (!File.Exists(filename))
+            {
+                throw new FileNotFoundException($"The file {filename} does not exist.");
+            }
+            Bitmap img = new Bitmap(filename);
+            int width = img.Width;
+            int height = img.Height;
+            double factor = (double)printWidth / width;
+            Bitmap resized = new Bitmap(img, new Size(printWidth, (int)(height * factor)));
+            for (int y = 0; y < resized.Height; y++)
+            {
+                for (int x = 0; x < resized.Width; x++)
+                {
+                    Color color = resized.GetPixel(x, y);
+                    if (color.A == 0) 
+                        resized.SetPixel(x, y, Color.White);
+                }
+            }
+
+            switch (imgBinarizationAlgo.ToLower())
+            {
+                case "atkinson":
+                    resized = AtkinsonDither(resized);
+                    break;
+                case "floyd-steinberg":
+                    resized = FloydSteinbergDither(resized);
+                    break;
+                case "halftone":
+                    resized = HalftoneDither(resized);
+                    break;
+                default:
+                    throw new InvalidOperationException($"Unknown image binarization algorithm: {imgBinarizationAlgo}");
+            }
+
+            if (invert)
+            {
+                resized = InvertImage(resized);
+            }
+            return resized;
         }
     }
 }
