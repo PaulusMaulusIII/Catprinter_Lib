@@ -140,7 +140,7 @@ namespace Catprinter.Utils
                 for (int x = 0; x < resized.Width; x++)
                 {
                     Color color = resized.GetPixel(x, y);
-                    if (color.A == 0) 
+                    if (color.A == 0)
                         resized.SetPixel(x, y, Color.White);
                 }
             }
